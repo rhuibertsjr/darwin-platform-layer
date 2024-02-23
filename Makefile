@@ -22,15 +22,16 @@ SRC   = ./src
 SRCS  = $(shell find $(SRC) -name "*.c")
 OBJS  = $(SRCS:.c=.o)
 
-DEFINES  = -DASSERT
+DEFINES  = -DASSERT #-DNDEBUG
 
 #
 ## Configurations 
 #
-CC = clang-15
+CC = gcc 
 
 # Flags
-CFLAGS   = -std=c11 -Wall -Wextra -Wpedantic -Wno-nullability-completeness
+CFLAGS   = -std=gnu99 -Wall -Wextra -Wpedantic -Wno-nullability-completeness
+CFLAGS  += -Wno-gnu-zero-variadic-macro-arguments
 CFLAGS  += -g -O0 -I$(PROJECT_PATH)/$(SRC) $(DEFINES)
 
 LDFLAGS  = 
@@ -65,7 +66,7 @@ $(SRC)/%.o: $(SRC)/%.c
 	@echo "\033[1;33mFinished building object: $@ \033[0m \n"
 
 ifeq ($(PLATFORM), Darwin)
-$(TARGET): $(OBJS) $(OBJSM)
+$(TARGET): $(OBJSM) $(OBJS) 
 	@echo "\033[1;33mBuilding target: ./$@ \033[0m"
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 	@echo "\033[1;33mFinished building target: ./$@ \033[0m \n"

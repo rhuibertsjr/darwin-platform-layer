@@ -6,19 +6,21 @@
 typedef struct Window Window;
 
 void
-LrtzPlatformInitialize(void);
+lrtz_platform_initialize(void);
 
 Window
-LrtzPlatformPollEvents(void);
+lrtz_platform_poll_events(void);
 
 Window
-LrtzPlatformWindowCreate(String title, U32 width, U32 height);
+lrtz_platform_window_create(string title, u32 width, u32 height);
 
 void
-LrtzPlatformWindowClose(void);
+lrtz_platform_window_close(void);
 
 #ifdef LRTZ_PLATFORM_DARWIN
 #    include "platform/darwin-platform.h"
+#else
+#    error "Platform has not been detected."
 #endif
 
 #endif

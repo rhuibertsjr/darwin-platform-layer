@@ -1,19 +1,21 @@
 #include "lorentz.h"
 #include "platform/platform.h"
 
-int main(UNUSED int argc, UNUSED char *argv[])
+int main(UNUSED int argc, UNUSED char* argv[])
 {
-    LrtzPlatformInitialize();
+    lrtz_log(INFO, TAG_LORENTZ, "Starting...");
+
+    lrtz_platform_initialize();
 
     Window window =
-        LrtzPlatformWindowCreate("A Lorentz application", 1200, 720);
+        lrtz_platform_window_create("A Lorentz application", 1200, 768);
 
-    DEBUG(TAG_WINDOW, "Window width: %u\n", window.width);
-    DEBUG(TAG_WINDOW, "Window height: %u\n", window.height);
+    lrtz_debug( "Window sizes: { width: %u, height: %u}", window.width,
+        window.height);
 
     while(true)
     {
-        LrtzPlatformPollEvents();
+        lrtz_platform_poll_events();
     }
 
     return 0;

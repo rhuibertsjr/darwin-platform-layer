@@ -4,6 +4,7 @@
 /* =============================================================================
  * Dependencies 
  ============================================================================ */
+#define TARGET_OS_IPHONE 0 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -34,104 +35,112 @@
 /* =============================================================================
  * Types and compounds 
  ============================================================================ */
-typedef uint8_t   U8;
-typedef uint16_t U16;
-typedef uint32_t U32;
-typedef uint64_t U64;
+typedef uint8_t   u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-typedef int8_t    S8;
-typedef int16_t  S16;
-typedef int32_t  S32;
-typedef int64_t  S64;
+typedef int8_t    s8;
+typedef int16_t  s16;
+typedef int32_t  s32;
+typedef int64_t  s64;
 
-typedef float    F32;
-typedef double   F64;
+typedef float    f32;
+typedef double   f64;
 
-typedef uint32_t B32; 
-typedef uint64_t B64; 
+typedef uint32_t b32; 
+typedef uint64_t b64; 
 
 #define true  1
 #define false 0
 
-typedef const char* String;
+typedef const char* string;
 
-typedef union Vector2 {
+typedef union vector2 {
     struct {
-        U32 x, y;
+        u32 x, y;
     };
 
-    U32 v[2];
+    u32 v[2];
     
-} Vector2;
+} vector2;
 
-typedef union Vector3 {
+typedef union vector3 {
 
     struct {
-        U32 x, y, z;
+        u32 x, y, z;
     };
 
-    U32 v[3];
+    u32 v[3];
     
-} Vector3;
+} vector3;
 
-typedef union Vector4 {
+typedef union vector4 {
 
     struct {
-        U32 x, y, z, w;
+        u32 x, y, z, w;
     };
 
-    U32 v[4];
+    u32 v[4];
     
-} Vector4;
+} vector4;
 
 /* =============================================================================
  * Helpers 
  ============================================================================ */
-#define Clamp(a, x, b) ((x) < (a) ? (a) : (x) > (b) ? (b) : (x))
-#define Min(a, b) ((a) < (b) ? (a) : (b))
-#define Max(a, b) ((a) > (b) ? (a) : (b))
+#define clamp(a, x, b) ((x) < (a) ? (a) : (x) > (b) ? (b) : (x))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
-#define Stringify_(S) #S
-#define Stringify(S) Stringify_(S)
-#define Concat_(A, B) A##B
-#define Concat(A, B) Concat_(A, B)
+#define stringify_(S) #S
+#define stringify(S) stringify_(S)
+#define concat_(A, B) A##B
+#define concat(A, B) concat_(A, B)
+
+#define statement(S) \
+    do { S } while(0)
 
 /* =============================================================================
  * Syntax and attributes 
  ============================================================================ */
-#define LrtzInternal  static
-#define LrtzGlobal    static
-#define LrtzLocal     static
+#ifndef internal
+#define internal static
+#endif
 
 #define UNUSED __attribute__((unused))
 
 /* =============================================================================
  * Logging 
  ============================================================================ */
-enum LrtzLoggingTypeTable {
-    ERROR    = 0x00,
+typedef enum lrtz_log_type_table {
+    NONE = 0x00,
+    ERROR,
     WARNING,
     INFO,
     TEST
-};
+} lrtz_log_type_table;
 
-enum LrtzLoggingTagTable {
+typedef enum lrtz_log_tag_table {
     TAG_NONE    = 0x00,
+    TAG_LORENTZ,
+    TAG_ASSERT,
     TAG_PLATFORM,
     TAG_WINDOW
-};
+} lrtz_log_tag_table;
 
-LrtzInternal String _LrtzLoggingTypeTable[] = {"ERROR", "WARNING", "INFO"};
-LrtzInternal String _LrtzLoggingTagTable[] =
+internal string _lrtz_log_type_table[] = {"", "ERROR", "WARNING", "INFO"};
+internal string _lrtz_log_tag_table[] =
 {
     "",
+    "Lorentz",
+    "Assert",
     "Platform",
     "Window"
 }; 
 
-inline LrtzInternal void
-_LrtzLog(enum LrtzLoggingTypeTable type,
-         enum LrtzLoggingTagTable tag, String format, ...)
+inline internal void
+_lrtz_log(
+    lrtz_log_type_table type, lrtz_log_tag_table tag, string format, ...)
 {
     va_list args_list;
     char message[1024];
@@ -142,10 +151,32 @@ _LrtzLog(enum LrtzLoggingTypeTable type,
     
     printf(
        "[DEBUG][%s] (%s) %s\n",
-       _LrtzLoggingTypeTable[type], _LrtzLoggingTagTable[tag], message);
+       _lrtz_log_type_table[type], _lrtz_log_tag_table[tag], message);
 }
 
-#define Log(type, tag, format) _LrtzLog(type, tag, format)
-#define DEBUG(tag, format) _LrtzLog(TEST, tag, format)
+#define lrtz_log(type, tag, format, ...)                        \
+    statement(_lrtz_log(type, tag, "\t" format, ##__VA_ARGS__);)
 
-#endif 
+#ifdef NDEBUG
+#define lrtz_debug(format, ...)
+#else
+#define lrtz_debug(format, ...)                                      \
+    statement(_lrtz_log(NONE, TAG_NONE, format, ##__VA_ARGS__);)
+#endif
+
+/* =============================================================================
+ * Assertion 
+ ============================================================================ */
+#if NDEBUG
+#define lrtz_assert(expression)
+#else
+#define lrtz_assert(expression)                                          \
+    statement(                                                           \
+        if (!(expression)) {                                             \
+            lrtz_log(                                                    \
+                ERROR, TAG_ASSERT, "/ " stringify(expression) " / \n "); \
+            __builtin_trap();                                            \
+    }) 
+#endif
+
+#endif // LRTZ_H

@@ -1,29 +1,17 @@
 #import "platform/darwin-platform.h"
 #import "lorentz.h"
 
-/* =============================================================================
- * Lorentz application 
- ============================================================================ */
-@interface LrtzApplicationDelegate : NSObject<NSApplicationDelegate> {}
-@end
-
 @implementation LrtzApplicationDelegate
 
 - (void) applicationDidFinishLaunching:(NSNotification*) notification
 {
-    Log(INFO, TAG_PLATFORM, "Initializing platform completed");
+    lrtz_log(INFO, TAG_PLATFORM, "Initializing platform completed");
     [NSApp stop:nil];
 }
 
 @end
 
-/* =============================================================================
- * Lorentz window
- ============================================================================ */
-@interface LrtzWindow : NSWindow {}
-@end
-
-@implementation LrtzWindow
+@implementation LrtzWindow 
 
 - (BOOL) canBecomeKeyWindow
 {
@@ -34,18 +22,6 @@
 {
     return YES;
 }
-
-@end
-
-/* =============================================================================
- * Lorentz window delegate
- ============================================================================ */
-@interface LrtzWindowDelegate : NSObject<NSWindowDelegate>
-{
-    Window* window;
-}
-
-- (instancetype) initialize_window:(Window*) init_window;
 
 @end
 
@@ -70,9 +46,9 @@
  * 
  ============================================================================ */
 void
-LrtzPlatformInitialize(void)
+lrtz_platform_initialize(void)
 {
-    Log(INFO, TAG_PLATFORM, "Initializing platform");
+    lrtz_log(INFO, TAG_PLATFORM, "Initializing platform");
 
     NSApplication* application =
         [NSApplication sharedApplication];
@@ -86,9 +62,10 @@ LrtzPlatformInitialize(void)
 }
 
 Window
-LrtzPlatformWindowCreate(String title, U32 width, U32 height)
+lrtz_platform_window_create(string title, u32 width, u32 height)
 {
-    Log(INFO, TAG_WINDOW, " - Creating window");
+    lrtz_assert(width > 0);
+    lrtz_assert(height > 0);
 
     Window window;
     window.width  = width;
@@ -109,6 +86,11 @@ LrtzPlatformWindowCreate(String title, U32 width, U32 height)
                                         backing:NSBackingStoreBuffered
                                           defer:NO];
 
+    //NSView *contentView = [[NSView alloc] initWithFrame:frame];
+ 
+ 
+    //[window setContentView:contentView];
+
     [window.object setTitle:@(title)];
     [window.object setDelegate:window.delegate];
     [window.object setContentView:window.view];
@@ -122,11 +104,12 @@ LrtzPlatformWindowCreate(String title, U32 width, U32 height)
     if (![[NSRunningApplication currentApplication] isFinishedLaunching])
         [NSApp run];
 
+    lrtz_log(INFO, TAG_WINDOW, " - Created window");
     return window;
 }
 
 void
-LrtzPlatformPollEvents(void)
+lrtz_platform_poll_events(void)
 {
     while(true)
     {
@@ -136,7 +119,7 @@ LrtzPlatformPollEvents(void)
                                   inMode:NSDefaultRunLoopMode
                                  dequeue:YES];
 
-        // Do nothing when there are no events.
+        // NOTE(rhuibjr) Do nothing when there are no events.
         if (event == nil)
             return;
 
@@ -145,8 +128,8 @@ LrtzPlatformPollEvents(void)
 }
 
 void
-LrtzPlatformWindowClose(void)
+lrtz_platform_window_close(void)
 {
-    Log(INFO, TAG_WINDOW, "Platform closing window.");
+    lrtz_log(INFO, TAG_WINDOW, "Platform closing window.");
     [NSApp terminate:nil];
 }
